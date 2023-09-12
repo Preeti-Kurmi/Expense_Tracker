@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Expense Tracker</h1>
+        <form id="expenseForm">
+            <div class="form-group">
+                <label for="amount">Expense Amount:</label>
+                <input type="number" class="form-control" id="amount" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <input type="text" class="form-control" id="description" required>
+            </div>
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select class="form-control" id="category">
+                    <option value="fuel">Fuel</option>
+                    <option value="grocery">Grocery</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Expense</button>
+        </form>
+        <div id="expenseList" class="mt-4">
+            <!-- Expense entries will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        const expenseForm = document.getElementById("expenseForm");
+        const expenseList = document.getElementById("expenseList");
+
+        expenseForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const amount = parseFloat(document.getElementById("amount").value);
+            const description = document.getElementById("description").value;
+            const category = document.getElementById("category").value;
+
+            const expenseEntry = {
+                amount,
+                description,
+                category
+            };
+
+            let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+            expenses.push(expenseEntry);
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+
+            displayExpenses();
+            expenseForm.reset();
+        });
+
+        function displayExpenses() {
+            expenseList.innerHTML = "";
+            const expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+            expenses.forEach((expense, index) => {
+                const expenseEntry = `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">${expense.description}</h5>
+                            <p class="card-text">${expense.category}</p>
+                            <p class="card-text">$${expense.amount}</p>
+                            <button class="btn btn-info edit-button" data-index="${index}">Edit Expense</button>
+                            <button class="btn btn-danger delete-button" data-index="${index}">Delete Expense</button>
+                        </div>
+                    </div>
+                `;
+                expenseList.insertAdjacentHTML("beforeend", expenseEntry);
+            });
+
+            // Add event listeners to edit and delete buttons
+            const editButtons = document.querySelectorAll(".edit-button");
+            const deleteButtons = document.querySelectorAll(".delete-button");
+
+            editButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    const index = parseInt(button.getAttribute("data-index"));
+                    editExpense(index);
+                });
+            });
+
+            deleteButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    const index = parseInt(button.getAttribute("data-index"));
+                    deleteExpense(index);
+                });
+            });
+        }
+
+        function editExpense(index) {
+            const expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+            const editedExpense = expenses[index];
+            
+            const newAmount = parseFloat(prompt("Enter new amount:", editedExpense.amount));
+            const newDescription = prompt("Enter new description:", editedExpense.description);
+            const newCategory = prompt("Enter new category:", editedExpense.category);
+
+            editedExpense.amount = newAmount;
+            editedExpense.description = newDescription;
+            editedExpense.category = newCategory;
+
+            expenses[index] = editedExpense;
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+
+            displayExpenses();
+        }
+
+        function deleteExpense(index) {
+            const expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+            expenses.splice(index, 1);
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+            displayExpenses();
+        }
+
+        displayExpenses();
+    </script>
+</body>
+</html>
